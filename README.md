@@ -37,48 +37,37 @@ Open Trust Verifiable Identity Document 简称为 OTVID，是主体用于证明�
 
 OTVID 是一个标准的 [JWT](https://tools.ietf.org/html/rfc7519)，其组成见下。
 
-#### JOSE Header
-##### Algorithm
-JOSE Header 中的 `alg` 必须设置为如下值之一：
+JOSE Header Algorithm `alg` 必须设置为如下值之一：
 
-`alg` Param Value | Digital Signature Algorithm
-------------------|-----------------------------
-RS256 | RSASSA-PKCS1-v1_5 using SHA-256
-RS384 | RSASSA-PKCS1-v1_5 using SHA-384
-RS512 | RSASSA-PKCS1-v1_5 using SHA-512
-ES256 | ECDSA using P-256 and SHA-256
-ES384 | ECDSA using P-384 and SHA-384
-ES512 | ECDSA using P-521 and SHA-512
-PS256 | RSASSA-PSS using SHA-256 and MGF1 with SHA-256
-PS384 | RSASSA-PSS using SHA-384 and MGF1 with SHA-384
-PS512 | RSASSA-PSS using SHA-512 and MGF1 with SHA-512
+   `alg` Param Value | Digital Signature Algorithm
+   ------------------|-----------------------------
+   RS256 | RSASSA-PKCS1-v1_5 using SHA-256
+   RS384 | RSASSA-PKCS1-v1_5 using SHA-384
+   RS512 | RSASSA-PKCS1-v1_5 using SHA-512
+   ES256 | ECDSA using P-256 and SHA-256
+   ES384 | ECDSA using P-384 and SHA-384
+   ES512 | ECDSA using P-521 and SHA-512
+   PS256 | RSASSA-PSS using SHA-256 and MGF1 with SHA-256
+   PS384 | RSASSA-PSS using SHA-384 and MGF1 with SHA-384
+   PS512 | RSASSA-PSS using SHA-512 and MGF1 with SHA-512
 
-##### Key ID
-JOSE Header 中的 `kid` 是可选的。
+JOSE Header Key ID `kid` 是可选的。
 
-#### JWT Claims
-##### Subject Claim
-`sub` 必须被设置为访问主体的 OTID，如 `otid:ot.example.com:user:9eebccd2-12bf-40a6-b262-65fe0487d453`。
+Subject Claim `sub` 必须被设置为访问主体的 OTID，如 `otid:ot.example.com:user:9eebccd2-12bf-40a6-b262-65fe0487d453`。
 
-##### Issuer Claim
-`iss` 必须被设置为 OTVID 签发人的 OTID，如 `otid:ot.example.com`，一般是 OT-Auth（Open Trust Authentication）服务或访问主体自身的 OTID。
+Issuer Claim `iss` 必须被设置为 OTVID 签发人的 OTID，如 `otid:ot.example.com`，一般是 OT-Auth（Open Trust Authentication）服务或访问主体自身的 OTID。
 
-##### Audience Claim
-`aud` 必须被设置为访问客体的 OTID，如 `otid:ot.example.com:app:abc123`，并且只能设置一个（JWT 标准允许多个值）。
+Audience Claim `aud` 必须被设置为访问客体的 OTID，如 `otid:ot.example.com:app:abc123`，并且只能设置一个（JWT 标准允许多个值）。
 主体访问信任域的 OT-Auth 服务时，OTVID 的 `aud` 值是 `otid:ot.example.com`。访问客体必须要验证该 OTVID 的 `aud` 值是自己。
 
-##### Expiration Time Claim
-`exp` 必须被设置，其值为 Unix 时间戳，1970-01-01 UTC 以来的秒数，一般建议设置为3~10分钟之内。
+Expiration Time Claim `exp` 必须被设置，其值为 Unix 时间戳，1970-01-01 UTC 以来的秒数，一般建议设置为3~10分钟之内。
 
-##### Issued At Claim
-`iat` 必须被设置为 OTVID 签发时间，Unix 时间戳。
+Issued At Claim `iat` 必须被设置为 OTVID 签发时间，Unix 时间戳。
 
-##### Released At Claim
-`rat` 为可选值，当 `iss` 为 OT-Auth 服务并且 `exp` 比较长时（如超过10分钟，可以配置），应该被设置为 OT-Auth 服务存储的 `sub` 对应主体的 Released At 值。
-`rat` 用于实现对已签发 OTVID 的吊销，当 OT-Auth 服务验证 OTVID 的 `rat` 与存储值不一致时，说明该 OTVID 已经无效。
-当 `rat` 存在时，应该到 OT-Auth 的 `otvid_endpoint` 继续验证该 OTVID。
+Release Timestamp Claim `rts` 为可选值，它目前不是标准的 JWT Claim。当 `iss` 为 OT-Auth 服务并且 `exp` 比较长时（如超过10分钟，可以配置），应该被设置为 OT-Auth 服务存储的 `sub` 对应主体的 Release Timestamp 值。
+`rts` 用于实现对已签发 OTVID 的吊销，当 OT-Auth 服务验证 OTVID 的 `rts` 与存储值不一致时，说明该 OTVID 已经无效。
+当 `rts` 存在时，应该到 OT-Auth 的 `serviceEndpoints` 继续验证该 OTVID。
 
-##### 扩展 Claim
 OT-Auth 服务签发 OTVID 时允许追加其它 Claims，具体见相关 API 文档，但扩展的 Claims 不作为验证 OTVID 是否有效的依据。
 
 ### Open Trust Authentication
@@ -93,22 +82,18 @@ OT-Auth 服务必须能基于 Web PKI 被公开发现和验证其信任域的有
 
 `issuer` 必须为 OT-Auth 服务的 OTID。
 
-`otvid_endpoint` 必须为 OT-Auth 服务的 OTVID 签发和验证 API 端点，注意该端点的域名可以与所属信任域不同。
+`serviceEndpoints` 必须为 OT-Auth 服务的API 端点组，往这些 endpoint 直接发起 GET 请求应该要返回该服务的简要信息，消费者 SP 从而可以选择其中最快的一个调用，注意该端点的域名可以与所属信任域不同。
 
-`registration_endpoint` 必须为 OT-Auth 服务的主体基本信息登记、修改、分发 OTID的 API 端点，注意该端点的域名可以与所属信任域不同。
+`subjectTypesSupported` 必须为 OT-Auth 服务支持的主体类型列表数组，建议用 `user` 代表“用户”类型， `robot` 代表“机器人”类型，用 `app` 代表“应用”类型，用 `service` 代表“服务”类型。
 
-`resolution_endpoint` 必须为 OT-Auth 服务的主体解析、绑定的 API 端点，注意该端点的域名可以与所属信任域不同。
-
-`subject_types_supported` 必须为 OT-Auth 服务支持的主体类型列表数组，建议用 `user` 代表“用户”类型， `robot` 代表“机器人”类型，用 `app` 代表“应用”类型，用 `service` 代表“服务”类型。
-
-`otvid_alg_values_supported` 必须为 OT-Auth 服务支持的 OTVID 算法列表数组。
+`algValuesSupported` 必须为 OT-Auth 服务支持的 OTVID 算法列表数组。
 
 `keys` 必须为 OT-Auth 服务当前有效的 [JWK](https://tools.ietf.org/html/rfc7517) Set 数组，该数组必须包含至少一个有效 JWK，这组 JWK 只包含公钥及算法等信息，不能包含私钥，用于验证 OTVID。
-消费方 SP 应该缓存这组 JWK Set，并基于 `jwks_refresh_hint` 定期读取最新值，SP 应该用它们来验证请求主体的 OTVID，其中任意一个 JWK 验证成功即可认定该 OTVID 是本信任域的 OT-Auth 服务签发的，是可信的。
-当 SP 对 OTVID 有更严格的验证诉求时，可以继续到 OT-Auth 的 `otvid_endpoint` 继续验证该 OTVID，这样可以确保被吊销的 OTVID 不再有效。
+消费方 SP 应该缓存这组 JWK Set，并基于 `keysRefreshHint` 定期读取最新值，SP 应该用它们来验证请求主体的 OTVID，其中任意一个 JWK 验证成功即可认定该 OTVID 是本信任域的 OT-Auth 服务签发的，是可信的。
+当 SP 对 OTVID 有更严格的验证诉求时，可以继续到 OT-Auth 的 `serviceEndpoints` 继续验证该 OTVID，这样可以确保被吊销的 OTVID 不再有效。
 当 OTVID 的 `exp` 足够短时（如签发 10 分钟内），则没必要到 OT-Auth 验证它是否被吊销，从而节约 IO 开销。
 
-`jwks_refresh_hint` 必须为 OT-Auth 服务建议的消费方 SP 对 JWK Set 查询时间间隔。因为 JWK 会定期轮转更新，消费方 SP 有必要定时查询 JWK Set 从而确保获得最新有效值，建议为 3600 秒。
+`keysRefreshHint` 必须为 OT-Auth 服务建议的消费方 SP 对 JWK Set 查询时间间隔。因为 JWK 会定期轮转更新，消费方 SP 有必要定时查询 JWK Set 从而确保获得最新有效值，建议为 3600 秒。
 
 假设信任域为 `ot.example.com`，则该信任域 OT-Auth 服务的 OTID 为 `otid:ot.example.com`，验证该信任域的有效性则请求 `https://ot.example.com/.well-known/open-trust-configuration`，如：
 ```
@@ -123,12 +108,10 @@ Content-Type: application/json
 
 {
   "issuer": "otid:ot.example.com",
-  "otvid_endpoint": "https://server.example.com/ot/otvid",
-  "registration_endpoint": "https://server.example.com/ot/register",
-  "resolution_endpoint": "https://server.example.com/ot/resolver",
-  "subject_types_supported": ["user", "robot", "app", "service"],
-  "otvid_alg_values_supported": ["RS256", "ES256", "PS256"],
-  "jwks_refresh_hint": 3600,
+  "serviceEndpoints": ["https://server.example.com/ot"],
+  "subjectTypesSupported": ["user", "robot", "app", "service"],
+  "algValuesSupported": ["RS256", "ES256", "PS256"],
+  "keysRefreshHint": 3600,
   "keys": [
     {
       "kty": "EC",
