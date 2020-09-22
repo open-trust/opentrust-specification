@@ -1,4 +1,4 @@
-Open Trust Specifications 可信开放标准
+Open Trust Standards 可信开放标准
 ====
 
 ## 背景
