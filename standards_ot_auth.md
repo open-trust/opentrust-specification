@@ -26,7 +26,7 @@ OT-Auth 服务必须能基于 Web PKI 被公开发现和验证其信任域的有
 
 `serviceEndpoints` 必须为 OT-Auth 服务的 API 端点组，往这些 endpoint 直接发起 GET 请求应该要返回该服务的简要信息，可信主体从而可以选择其中最快的一个使用，注意该端点的域名可以与所属信任域不同。
 
-`subjectTypesSupported` 必须为 OT-Auth 支持的可信主体类型列表数组，官方 OT-Auth 内置了四种类型：`user` 代表“用户”， `robot` 代表“机器人”，`app` 代表“应用”，`service` 代表“服务”。可信主体类型可分为两大类，一类是承载访问主体职能的纯客户端侧的可信主体，可能会绑定其它非 OTID 的身份 ID，如 `user`、`robot`；第二类是承载访问客体职能的可信主体，为其它可信主体提供 API 能力，当然它也可能调用其它访问客体的 API，如 `app`、`service`。这里 `app`、`service` 的关键区别是，`app` 主要为第一类可信主体提供 API 能力，`service` 主要为第二类可信主体提供 API 能力。
+`user_types` 和 `service_types` 必须为 OT-Auth 支持的可信主体类型列表数组，官方 OT-Auth 内置了五种类型：`user` 代表“用户”，`dev` 代表“设备”，`agent` 代表“代理机器人”，`app` 代表“应用”，`svc` 代表“服务”。可信主体类型可分为两大类，一类是承载访问主体职能的纯客户端侧的可信主体，可能会绑定其它非 OTID 的身份 ID，如 `user`、`dev`，简称用户类；第二类是承载访问客体职能的可信主体，为其它可信主体提供 API 能力，它也作为可信主体调用其它客体的 API，如 `agent`、`app`、`svc`，简称服务类。这里 `svc` 主要为服务类可信主体提供 API 能力，`app` 主要调用服务类 API，为用户类可信主体提供 API 能力，`agent` 则表现为用户类，调用 `app` 的 API，但同时为用户类可信主体提供代理 API 执行能力。
 
 `keys` 也称为信任域公钥组，必须为 OT-Auth 当前有效的 [JWK](https://tools.ietf.org/html/rfc7517) Set 数组，该数组必须包含至少一个有效 JWK，这组 JWK 只包含公钥及算法信息，不能包含私钥，用于验证 OTVID。
 Verifier 验证者应该缓存这组 JWK Set，并基于 `keysRefreshHint` 定期读取最新值，Verifier 应该用它们来验证可信主体请求携带的 OTVID，当验证通过并发现该 OTVID 存在 Release ID 值时，则有必要到 OT-Auth 的 `serviceEndpoints` 继续验证该 OTVID，这样可以确保被吊销的 OTVID 不再有效。
@@ -50,7 +50,8 @@ Content-Type: application/json
 {
   "otid": "otid:ot.example.com",
   "serviceEndpoints": ["https://api.example.com/ot"],
-  "subjectTypesSupported": ["user", "robot", "app", "service"],
+  "user_types": ["user", "dev"],
+  "service_types": ["agent", "app", "svc"],
   "keysRefreshHint": 3600,
   "keys": [
     {
@@ -205,7 +206,7 @@ Content-Type: application/json;charset=UTF-8
 ```
 
 ```
-PUT https://api.example.com/ot/resolve/{otid}/bundles
+POST https://api.example.com/ot/resolve/{otid}/bundles
 ```
 
 ```

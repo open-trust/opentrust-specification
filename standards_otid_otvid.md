@@ -16,12 +16,12 @@ OTID 是符合 [RFC3986](https://tools.ietf.org/html/rfc3986) URI 规范的字�
 
 ```otid:trust-domain:subject-type:subject-id```
 
-1. scheme，固定为 `otid`；
-2. trust-domain，信任域，它由小写 ALPHA / DIGIT / "." / "-" / "_" 组成，它必须是由受信任公共 CA 颁发的证书签名的域名，并且要提供 [Open Trust Authority](#open-trust-authority) 服务能力，基于公共 PKI 体系，是 Open Trust 信任域的联合信任机制的基础；
-3. subject-type，可信主体类型，它由小写 ALPHA / DIGIT / "." / "-" / "_" 组成，任何事物都可以是信任主体，如 person, group, organization, physical thing, digital thing, logical thing 等，但一个实际部署的 Open Trust 系统中，subject-type 可通过 Open Trust Authority 服务配置来限定支持的类型；
-4. subject-id，可信主体身份，它由小写 ALPHA / DIGIT / "." / "-" / "_" 组成，在 trust-domain:subject-type 作用域下唯一；
+1. `scheme`，固定为 `otid`；
+2. `trust-domain`，信任域，它由小写 ALPHA / DIGIT / "." / "-" / "_" 组成，它必须是由受信任公共 CA 颁发的证书签名的域名，并且要提供 [Open Trust Authority](#open-trust-authority) 服务能力，基于公共 PKI 体系，是 Open Trust 信任域的联合信任机制的基础；
+3. `subject-type`，可信主体的类型，它由小写 ALPHA / DIGIT / "." / "-" / "_" 组成，任何事物都可以是可信主体，如 person, group, organization, physical thing, digital thing, logical thing 等，但一个实际部署的 Open Trust 系统中，`subject-type` 可通过 Open Trust Authority 服务配置来限定支持的类型。[ot-auth](https://github.com/open-trust/ot-auth) 服务默认支持 `user`、`dev`、`agent`、`app`、`svc` 五种类型，见 [Open Trust Authority](https://github.com/open-trust/standards/blob/master/standards_ot_auth.md#discovering-endpoint)，可以满足大部分需求。
+4. `subject-id`，可信主体身份，它由小写 ALPHA / DIGIT / "." / "-" / "_" 组成，在 `trust-domain:subject-type` 作用域下唯一。对于用户类 subject，推荐使用 uuid，如 `otid:ot.example.com:dev:9eebccd2-12bf-40a6-b262-65fe0487d454`；对于服务类 subject，推荐使用类似 Java 的包命名规则 —— `团队.项目`，来区分同一个信任域下的不同团队开发的服务、应用等，如 `otid:ot.example.com:svc:tml.urbs-setting`、`otid:ot.example.com:app:tml.urbs-console`，分别表示 `tml` 团队的 [urbs-setting](https://github.com/teambition/urbs-setting) 服务和 [urbs-console](https://github.com/teambition/urbs-console) 应用（面向前端、移动端等提供 API），这种 ID 命名风格相当于用 `tml.` 前缀定义了一个子信任域。
 5. OTID 是持久的、不可变的、小写的、URL 兼容的，长度不能超过 512 字节，建议长度控制在 128 字节以内；
-6. 信任域 Open Trust Authority 服务的 OTID 是一个特殊值 `otid:trust-domain`，其 subject-type 和 subject-id 都为空，如 `otid:ot.example.com`，其它 OTID 的 subject-type 和 subject-id 都不能为空。
+6. 信任域 Open Trust Authority 服务的 OTID 是一个特殊值 `otid:trust-domain`，其 `subject-type` 和 `subject-id` 都为空，如 `otid:ot.example.com`，其它 OTID 的 `subject-type` 和 `subject-id` 都不能为空。
 
 OTID 相关实现可参考 [ot-go-lib](https://github.com/open-trust/ot-go-lib/blob/master/otid.go)
 
